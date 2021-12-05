@@ -75,7 +75,7 @@ func SignUp(c *gin.Context) {
 	//and if i does, throw an error but if it doesnt
 	//then save it
 	if count > 0 {
-		msg := "This email address aleady exists"
+		msg := "This email address is aleady taken"
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 		return
 	}
@@ -93,10 +93,6 @@ func SignUp(c *gin.Context) {
 	//assign the ID to the user_id
 	user.User_id = user.ID.Hex()
 
-	// token, refreshToken, _ := helpers.GenerateAllTokens(user.User_id, *user.Email)
-	// user.Token = &token
-	// user.Refresh_token = &refreshToken
-
 	//insert the users data into the database
 	retultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
 	if insertErr != nil {
@@ -105,7 +101,9 @@ func SignUp(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, retultInsertionNumber)
+	c.JSON(http.StatusOK, gin.H{
+		"user_id": retultInsertionNumber,
+	})
 
 }
 
@@ -124,7 +122,7 @@ func Login(c *gin.Context) {
 
 	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
 	if err != nil {
-		msg := "Login or password incomplete"
+		msg := "Incorrect email address"
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 		return
 	}
@@ -135,8 +133,30 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// token, refreshToken, _ := helpers.GenerateAllTokens(foundUser.User_id, *foundUser.Email)
-	// helpers.UpdateAllTokens(token, refreshToken, foundUser.User_id)
-
 	c.JSON(http.StatusOK, foundUser)
+}
+
+//CreatePost is the api endpoint to create an item
+func CreatePost(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "Create post"})
+}
+
+//GetSinglePost is the api endpoint to create an item
+func GetSinglePost(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "Get single post"})
+}
+
+//GetAllPost is the api endpoint to create an item
+func GetAllPost(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "Get all post"})
+}
+
+//UpdatePost is the api endpoint to create an item
+func UpdatePost(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "Update post"})
+}
+
+//DeletePost is the api endpoint to create an item
+func DeletePost(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "Delete post"})
 }

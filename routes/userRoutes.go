@@ -15,10 +15,21 @@ func UserRoutes() {
 
 	router := gin.Default()
 
-	api := router.Group("/api/v1")
+	//user routes
+	user := router.Group("/api/v1")
 	{
-		api.POST("/user/signup", controllers.SignUp)
-		api.POST("/user/signin", controllers.Login)
+		user.POST("/user/signup", controllers.SignUp)
+		user.POST("/user/signin", controllers.Login)
+	}
+
+	//post routes
+	post := router.Group("/api/v1")
+	{
+		post.POST("/post/create", controllers.CreatePost)
+		post.GET("/post/:post_id", controllers.GetSinglePost)
+		post.GET("/post/posts", controllers.GetAllPost)
+		post.PATCH("post/:post", controllers.UpdatePost)
+		post.DELETE("/post/:post", controllers.DeletePost)
 	}
 
 	router.Run(":" + port)
