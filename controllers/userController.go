@@ -24,6 +24,7 @@ var validate = validator.New()
 
 //HashPassword is used to encrypt the password before it is stored in the mongo database
 func HashPassword(password string) string {
+	//encrypt the provided user password
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		log.Panic(err)
@@ -33,6 +34,7 @@ func HashPassword(password string) string {
 
 //VerifyPAssword chceks the input password while verifying it with the password in the mongo database
 func VerifyPassword(userPassword string, providedPassword string) (bool, string) {
+	//check if the provided user password is the same as the already hashed password in the database
 	err := bcrypt.CompareHashAndPassword([]byte(providedPassword), []byte(userPassword))
 	check := true
 	msg := ""
@@ -67,7 +69,7 @@ func SignUp(c *gin.Context) {
 	}
 
 	//read through all the user email addresses
-	count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
+	count, err := userCollection.CountDocuments(ctx, bson.M{"username": user.Username})
 	if err != nil {
 		log.Panic(err)
 		msg := "Error occured while checking for the Email"
@@ -79,7 +81,7 @@ func SignUp(c *gin.Context) {
 	//and if i does, throw an error but if it doesnt
 	//then save it
 	if count > 0 {
-		msg := "This email address is aleady taken"
+		msg := "this username already exists"
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 		return
 	}
@@ -92,11 +94,11 @@ func SignUp(c *gin.Context) {
 	//set a create and update time for the user
 	user.Created_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 	user.Updated_at, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
-
 	user.ID = primitive.NewObjectID()
-	//assign the ID to the user_id
 	user.User_id = user.ID.Hex()
-	token, refreshToken, _ := helpers.GenerateAllToken(*user.Email, user.User_id)
+
+	//generate a token for the user on signup
+	token, refreshToken, _ := helpers.GenerateAllTokens(*user.Username, user.User_id)
 	user.Token = &token
 	user.Refresh_token = &refreshToken
 
@@ -129,9 +131,10 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
+	//check if the user username is already taken
+	err := userCollection.FindOne(ctx, bson.M{"username": user.Username}).Decode(&foundUser)
 	if err != nil {
-		msg := "Incorrect email address"
+		msg := "Incorrect Username"
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 		return
 	}
@@ -142,10 +145,14 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, refreshToken, _ := helpers.GenerateAllToken(*foundUser.Email, foundUser.User_id)
+	token, refreshToken, _ := helpers.GenerateAllTokens(*foundUser.Username, foundUser.User_id)
 
 	helpers.UpdateAllTokens(token, refreshToken, foundUser.User_id)
 
 	c.JSON(http.StatusOK, foundUser)
 	// c.Redirect(500, "/api/v1/post/create")
+}
+
+func Test(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"message": "Access granted to use the resources"})
 }

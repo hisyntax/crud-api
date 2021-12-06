@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hisyntax/crud-api/controllers"
+	"github.com/hisyntax/crud-api/middleware"
 )
 
 func UserRoutes() {
@@ -24,12 +25,14 @@ func UserRoutes() {
 
 	//post routes
 	post := router.Group("/api/v1")
+	post.Use(middleware.Authentication)
 	{
 		post.POST("/post/create", controllers.CreatePost)
 		post.GET("/post/:post_id", controllers.GetSinglePost)
 		post.GET("/post/posts", controllers.GetAllPost)
 		post.PATCH("post/:post_id", controllers.UpdatePost)
 		post.DELETE("/post/:post_id", controllers.DeletePost)
+		post.GET("/user/test", controllers.Test)
 	}
 
 	router.Run(":" + port)

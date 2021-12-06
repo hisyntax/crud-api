@@ -15,8 +15,8 @@ import (
 )
 
 type SignedDetails struct {
-	Email string
-	Uid   string
+	Username string
+	Uid      string
 	jwt.StandardClaims
 }
 
@@ -25,10 +25,10 @@ var userCollection *mongo.Collection = database.OpenCollection(database.Client, 
 var SECRET_KEY string = os.Getenv("SECRET_KEY")
 
 // GenerateAllTokens generates both teh detailed token and refresh token
-func GenerateAllToken(email string, uid string) (signedToken string, signedRefreshToken string, err error) {
+func GenerateAllTokens(userName string, uid string) (signedToken string, signedRefreshToken string, err error) {
 	claims := &SignedDetails{
-		Email: email,
-		Uid:   uid,
+		Username: userName,
+		Uid:      uid,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Local().Add(time.Hour * time.Duration(24)).Unix(),
 		},
@@ -40,12 +40,9 @@ func GenerateAllToken(email string, uid string) (signedToken string, signedRefre
 		},
 	}
 
-	token, err := jwt.NewWithClaims(jwt.SigningMethodES256, claims).SignedString([]byte(SECRET_KEY))
-	if err != nil {
-		log.Panic(err)
-		return
-	}
+	token, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte(SECRET_KEY))
 	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte(SECRET_KEY))
+
 	if err != nil {
 		log.Panic(err)
 		return
