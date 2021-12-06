@@ -47,7 +47,9 @@ func VerifyPassword(userPassword string, providedPassword string) (bool, string)
 
 //CreateUSer is the api endpoint used to create a user
 func SignUp(c *gin.Context) {
+	//ope n a database conection to the mongo database
 	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	//close that connection after the resources in not in use
 	defer cancel()
 
 	var user models.User
@@ -114,7 +116,9 @@ func SignUp(c *gin.Context) {
 
 //login is the api endpoint to signin the user inot the system
 func Login(c *gin.Context) {
+	//ope n a database conection to the mongo database
 	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	//close that connection after the resources in not in use
 	defer cancel()
 
 	var user models.User

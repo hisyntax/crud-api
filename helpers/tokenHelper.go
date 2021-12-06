@@ -87,7 +87,10 @@ func ValidateToken(signedToken string) (claims *SignedDetails, msg string) {
 
 //UpdateAllTokens renews the user tokens when they login
 func UpdateAllTokens(signedToken string, signedRefreshToken string, userId string) {
-	var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+	//ope n a database conection to the mongo database
+	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	//close that connection after the resources in not in use
+	defer cancel()
 
 	var updateObj primitive.D
 
@@ -111,7 +114,6 @@ func UpdateAllTokens(signedToken string, signedRefreshToken string, userId strin
 		},
 		&opt,
 	)
-	defer cancel()
 
 	if err != nil {
 		log.Panic(err)
