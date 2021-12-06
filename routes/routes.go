@@ -28,8 +28,8 @@ func UserRoutes() {
 		post.POST("/post/create", controllers.CreatePost)
 		post.GET("/post/:post_id", controllers.GetSinglePost)
 		post.GET("/post/posts", controllers.GetAllPost)
-		post.PATCH("post/:post", controllers.UpdatePost)
-		post.DELETE("/post/:post", controllers.DeletePost)
+		post.PATCH("post/:post_id", controllers.UpdatePost)
+		post.DELETE("/post/:post_id", controllers.DeletePost)
 	}
 
 	router.Run(":" + port)

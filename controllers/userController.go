@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"github.com/hisyntax/crud-api/database"
+	"github.com/hisyntax/crud-api/helpers"
 	"github.com/hisyntax/crud-api/models"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,6 +18,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+var postCollection *mongo.Collection = database.OpenCollection(database.Client, os.Getenv("POST_COLLECTION_NAME"))
 var userCollection *mongo.Collection = database.OpenCollection(database.Client, os.Getenv("USER_COLLECTION_NAME"))
 var validate = validator.New()
 
@@ -56,9 +58,9 @@ func SignUp(c *gin.Context) {
 	}
 
 	//validate the user struct
-	validateionErr := validate.Struct(user)
-	if validateionErr != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": validateionErr.Error()})
+	validationErr := validate.Struct(user)
+	if validationErr != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": validationErr.Error()})
 		return
 	}
 
@@ -92,6 +94,9 @@ func SignUp(c *gin.Context) {
 	user.ID = primitive.NewObjectID()
 	//assign the ID to the user_id
 	user.User_id = user.ID.Hex()
+	token, refreshToken, _ := helpers.GenerateAllToken(*user.Email, user.User_id)
+	user.Token = &token
+	user.Refresh_token = &refreshToken
 
 	//insert the users data into the database
 	retultInsertionNumber, insertErr := userCollection.InsertOne(ctx, user)
@@ -133,30 +138,10 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	token, refreshToken, _ := helpers.GenerateAllToken(*foundUser.Email, foundUser.User_id)
+
+	helpers.UpdateAllTokens(token, refreshToken, foundUser.User_id)
+
 	c.JSON(http.StatusOK, foundUser)
-}
-
-//CreatePost is the api endpoint to create an item
-func CreatePost(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Create post"})
-}
-
-//GetSinglePost is the api endpoint to create an item
-func GetSinglePost(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Get single post"})
-}
-
-//GetAllPost is the api endpoint to create an item
-func GetAllPost(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Get all post"})
-}
-
-//UpdatePost is the api endpoint to create an item
-func UpdatePost(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Update post"})
-}
-
-//DeletePost is the api endpoint to create an item
-func DeletePost(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Delete post"})
+	// c.Redirect(500, "/api/v1/post/create")
 }
