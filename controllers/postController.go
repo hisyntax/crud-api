@@ -54,18 +54,35 @@ func CreatePost(c *gin.Context) {
 
 //GetSinglePost is the api endpoint to create an item
 func GetSinglePost(c *gin.Context) {
-	// //ope n a database conection to the mongo database
-	// var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-	// //close that connection after the resources in not in use
-	// defer cancel()
-	// var post []models.Post
-	// params := c.Param("post_id")
-	// query, err := postCollection.Find(ctx, post)
-	// if err != nil {
-	// 	log.Fatal(err)
+	//ope n a database conection to the mongo database
+	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	//close that connection after the resources in not in use
+	defer cancel()
+
+	var post models.Post
+	post_id, err := primitive.ObjectIDFromHex(c.Param("post_id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
+	// if post_id != "" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameter"})
+	// 	return err
 	// }
 
-	// c.JSON(http.StatusOK, gin.H{"message": query})
+	findResult := postCollection.FindOne(ctx, bson.M{"_id": post_id})
+	if err := findResult.Err(); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = findResult.Decode(&post)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"post": post})
 
 }
 
@@ -137,7 +154,10 @@ func UpdatePost(c *gin.Context) {
 
 	ctx.Done()
 
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "Successfully updated the Post", "title": editedPost.Title})
+	c.IndentedJSON(http.StatusOK, gin.H{
+		"message": "Successfully updated the Post",
+		"title":   editedPost.Title,
+	})
 }
 
 //DeletePost is the api endpoint to create an item

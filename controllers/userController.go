@@ -69,7 +69,7 @@ func SignUp(c *gin.Context) {
 	}
 
 	//read through all the user email addresses
-	count, err := userCollection.CountDocuments(ctx, bson.M{"username": user.Username})
+	count, err := userCollection.CountDocuments(ctx, bson.M{"email": user.Email})
 	if err != nil {
 		log.Panic(err)
 		msg := "Error occured while checking for the Email"
@@ -81,7 +81,7 @@ func SignUp(c *gin.Context) {
 	//and if i does, throw an error but if it doesnt
 	//then save it
 	if count > 0 {
-		msg := "this username already exists"
+		msg := "this email already exists"
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 		return
 	}
@@ -98,7 +98,7 @@ func SignUp(c *gin.Context) {
 	user.User_id = user.ID.Hex()
 
 	//generate a token for the user on signup
-	token, refreshToken, _ := helpers.GenerateAllTokens(*user.Username, user.User_id)
+	token, refreshToken, _ := helpers.GenerateAllTokens(*user.Email, user.User_id)
 	user.Token = &token
 	user.Refresh_token = &refreshToken
 
@@ -131,10 +131,10 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	//check if the user username is already taken
-	err := userCollection.FindOne(ctx, bson.M{"username": user.Username}).Decode(&foundUser)
+	//check if the user email is already taken
+	err := userCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&foundUser)
 	if err != nil {
-		msg := "Incorrect Username"
+		msg := "Incorrect email"
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 		return
 	}
@@ -145,7 +145,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, refreshToken, _ := helpers.GenerateAllTokens(*foundUser.Username, foundUser.User_id)
+	token, refreshToken, _ := helpers.GenerateAllTokens(*foundUser.Email, foundUser.User_id)
 
 	helpers.UpdateAllTokens(token, refreshToken, foundUser.User_id)
 

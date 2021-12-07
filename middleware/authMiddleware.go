@@ -26,7 +26,7 @@ func Authentication(c *gin.Context) {
 		return
 	}
 
-	c.Set("username", claims.Username)
+	c.Set("email", claims.Email)
 	c.Set("uid", claims.Uid)
 
 	c.Next()

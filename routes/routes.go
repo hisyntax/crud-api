@@ -32,7 +32,6 @@ func UserRoutes() {
 		post.GET("/post/posts", controllers.GetAllPost)
 		post.PUT("/post/:post_id", controllers.UpdatePost)
 		post.DELETE("/post/:post_id", controllers.DeletePost)
-		post.GET("/user/test", controllers.Test)
 	}
 
 	router.Run(":" + port)
