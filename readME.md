@@ -11,7 +11,7 @@ git clone [https://githb.com/hisyntax/crud-api](https://githb.com/hisyntax/crud-
 
 ## Install Dependencies
 
-gi get ./...
+go get ./...
 
 ## Run the app
 
