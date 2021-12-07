@@ -45,8 +45,9 @@ func CreatePost(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"title":   post.Title,
-		"user_id": retultInsertionNumber,
+		"title":      post.Title,
+		"created_at": post.Created_at,
+		"user_id":    retultInsertionNumber,
 	})
 
 }
@@ -101,18 +102,73 @@ func GetAllPost(c *gin.Context) {
 
 //UpdatePost is the api endpoint to create an item
 func UpdatePost(c *gin.Context) {
-	// //ope n a database conection to the mongo database
-	// var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-	// //close that connection after the resources in not in use
-	// defer cancel()
-	c.JSON(http.StatusOK, gin.H{"message": "Update post"})
+	//ope n a database conection to the mongo database
+	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	//close that connection after the resources in not in use
+	defer cancel()
+
+	//set the request parameter to be passed through the route
+	post_id := c.Param("post_id")
+	if post_id == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Invalid parameter"})
+		c.Abort()
+		return
+	}
+
+	posts_id, err := primitive.ObjectIDFromHex(post_id)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+
+	var editedPost models.Post
+	if err := c.BindJSON(&editedPost); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	filter := bson.D{primitive.E{Key: "_id", Value: posts_id}}
+	update := bson.D{{Key: "$set", Value: bson.D{primitive.E{Key: "title", Value: editedPost.Title}, {Key: "body", Value: editedPost.Body}}}}
+	_, err = postCollection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
+		return
+	}
+
+	ctx.Done()
+
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Successfully updated the Post", "title": editedPost.Title})
 }
 
 //DeletePost is the api endpoint to create an item
 func DeletePost(c *gin.Context) {
-	//ope n a database conection to the mongo database
-	// var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
-	// //close that connection after the resources in not in use
-	// defer cancel()
-	c.JSON(http.StatusOK, gin.H{"message": "Delete post"})
+	//open a database conection to the mongo database
+	var ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
+	//close that connection after the resources in not in use
+	defer cancel()
+
+	post_id := c.Param("post_id")
+	if post_id == "" {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Invalid parameter"})
+		return
+	}
+
+	// posts := make([]models.Post, 0)
+
+	posts_id, err := primitive.ObjectIDFromHex(post_id)
+	if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	filter := bson.D{primitive.E{Key: "_id", Value: posts_id}}
+	_, err = postCollection.DeleteOne(ctx, filter)
+	if err != nil {
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.Done()
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "Successfully Deleted!"})
+
 }
