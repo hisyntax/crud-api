@@ -65,11 +65,8 @@ func GetSinglePost(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return
 	}
-	// if post_id != "" {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid parameter"})
-	// 	return err
-	// }
 
+	//search through the database to find a post tihe the passed in id
 	findResult := postCollection.FindOne(ctx, bson.M{"_id": post_id})
 	if err := findResult.Err(); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
@@ -108,6 +105,7 @@ func GetAllPost(c *gin.Context) {
 		return
 	}
 	defer cusor.Close(ctx)
+
 	if err := cusor.Err(); err != nil {
 		log.Println(err)
 		c.AbortWithStatus(http.StatusInternalServerError)
@@ -144,7 +142,10 @@ func UpdatePost(c *gin.Context) {
 		return
 	}
 
+	//search through the database to find a post with passed in post_id
 	filter := bson.D{primitive.E{Key: "_id", Value: posts_id}}
+
+	//specify the fields which can be updated
 	update := bson.D{{Key: "$set", Value: bson.D{primitive.E{Key: "title", Value: editedPost.Title}, {Key: "body", Value: editedPost.Body}}}}
 	_, err = postCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
@@ -181,6 +182,7 @@ func DeletePost(c *gin.Context) {
 		return
 	}
 
+	// search through the databse and match the post_id
 	filter := bson.D{primitive.E{Key: "_id", Value: posts_id}}
 	_, err = postCollection.DeleteOne(ctx, filter)
 	if err != nil {

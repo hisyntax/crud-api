@@ -139,6 +139,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
+	//chack if the provided password is the same as the password in the database
 	passwordIsValid, msg := VerifyPassword(*user.Password, *foundUser.Password)
 	if !passwordIsValid {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
@@ -151,8 +152,4 @@ func Login(c *gin.Context) {
 
 	c.JSON(http.StatusOK, foundUser)
 	// c.Redirect(500, "/api/v1/post/create")
-}
-
-func Test(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "Access granted to use the resources"})
 }
