@@ -7,7 +7,7 @@ git clone [https://githb.com/hisyntax/crud-api](https://githb.com/hisyntax/crud-
 
 ## After cloning the repo navigate to the project directory
 
-## Create a .env file and then copy the content of the example.env file into it and add the requires values
+## Create a .env file and then copy the content of the example.env file into it and add the required values
 
 ## Install Dependencies
 
